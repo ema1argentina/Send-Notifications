@@ -1,0 +1,114 @@
+*&---------------------------------------------------------------------*
+*& Form F_DEFINE_HTTP_CLIENT
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM f_define_http_client .
+
+****Create the HTTP CLient
+  CALL METHOD cl_http_client=>create_by_destination
+    EXPORTING
+      destination              = c_rfc_scpms
+    IMPORTING
+      client                   = go_http_client
+    EXCEPTIONS
+      argument_not_found       = 1
+      destination_not_found    = 2
+      destination_no_authority = 3
+      plugin_not_active        = 4
+      internal_error           = 5
+      OTHERS                   = 6.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form F_SET_HEADERS
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM f_set_headers .
+
+  DATA: l_query TYPE string.
+
+  l_query = c_query.
+****Set Request Path
+  cl_http_utility=>set_request_uri(
+   EXPORTING
+       request = go_http_client->request    " HTTP Framework (iHTTP) HTTP Request
+       uri     = l_query                    " URI String (in the Form of /path?query-string)
+     ).
+
+****content type
+  CALL METHOD go_http_client->request->set_content_type
+    EXPORTING
+      content_type = 'application/json'.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Include          Z_SEND_NOTIFICATION_FORM
+*&---------------------------------------------------------------------*
+*&---------------------------------------------------------------------*
+*& Form F_SEND_NOTIFICATION
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM f_send_notification .
+  DATA: lo_rest_client TYPE REF TO cl_rest_http_client.
+  DATA: lo_request     TYPE REF TO if_rest_entity.
+  DATA: lv_body TYPE string.
+  DATA: workitem TYPE string.
+
+****Create REST Client object
+  CREATE OBJECT lo_rest_client
+    EXPORTING
+      io_http_client = go_http_client.
+  TRY.
+      workitem = '000000003018'.
+      CONCATENATE '{"alert":"Notifcation from SAP S4HANA", "badge":1, "data": "{\"title\":\"Notif Title\",\"workitem\":\"' workitem '\",\"details\":{}}", "priority": "high" }' INTO lv_body.
+
+      " Set Payload or body ( JSON or XML)
+      lo_request = lo_rest_client->if_rest_client~create_request_entity( ).
+      lo_request->set_content_type( iv_media_type = if_rest_media_type=>gc_appl_json ).
+      lo_request->set_string_data( lv_body ).
+
+      " POST - Send Request
+      lo_rest_client->if_rest_resource~post( lo_request ).
+
+      " Get Response
+      DATA(lo_response) = lo_rest_client->if_rest_client~get_response_entity( ).
+      DATA(lv_http_status) = lo_response->get_header_field( '~status_code' ).
+
+****HTTP Request Failed --> If Response status code different to 201
+      IF lv_http_status NE 201.
+        DATA(lv_reason) = lo_response->get_header_field( '~status_reason' ).
+        WRITE: lv_reason.
+        RETURN.
+      ENDIF.
+
+****Read the response data in JSON.
+      DATA(lv_json_data) = lo_response->get_string_data( ).
+      "Refresh the SLACK response to clear HTTP memory of previous calls
+      IF go_http_client IS BOUND.
+        go_http_client->refresh_response( ).
+        "Close HTTP session (Exception HTTP_NO_MEMORY)
+        go_http_client->close( ).
+      ENDIF.
+
+****Collect into the exception table.
+    CATCH cx_rest_client_exception INTO DATA(lo_rest_client_exception).
+      WRITE: 'Error: Rest Client exception'.
+  ENDTRY.
+
+  IF lv_json_data IS NOT INITIAL.
+    WRITE: lv_json_data.
+  ENDIF.
+
+ENDFORM.

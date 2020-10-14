@@ -3,10 +3,10 @@
 *&---------------------------------------------------------------------*
 *&
 *&---------------------------------------------------------------------*
-REPORT Z_PUSH_NOTIFICATION.
+REPORT z_push_notification.
 
-INCLUDE Z_PUSH_NOTIFICATION_top.
-INCLUDE Z_PUSH_NOTIFICATION_form.
+INCLUDE z_push_notification_top.
+INCLUDE z_push_notification_form.
 
 INITIALIZATION.
 

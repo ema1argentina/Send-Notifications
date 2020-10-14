@@ -1,0 +1,23 @@
+*&---------------------------------------------------------------------*
+*& Report Z_PUSH_NOTIFICATION
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT Z_PUSH_NOTIFICATION.
+
+INCLUDE Z_PUSH_NOTIFICATION_top.
+INCLUDE Z_PUSH_NOTIFICATION_form.
+
+INITIALIZATION.
+
+AT SELECTION-SCREEN.
+
+START-OF-SELECTION.
+  "Call selection-screen
+  CALL SELECTION-SCREEN 1001.
+  "Once you pressed execute ...
+  IF sy-subrc = 0.
+    PERFORM f_define_http_client.
+    PERFORM f_set_headers.
+    PERFORM f_send_notification.
+  ENDIF.

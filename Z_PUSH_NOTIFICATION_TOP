@@ -1,0 +1,12 @@
+*&---------------------------------------------------------------------*
+*& Include          Z_PUSH_NOTIFICATION_TOP
+*&---------------------------------------------------------------------*
+DATA: go_http_client TYPE REF TO if_http_client.
+
+CONSTANTS: c_rfc_scpms TYPE rfcdest VALUE '<RFC_NAME>', " RFC Destination TYPE G
+           c_query   TYPE string VALUE '/restnotification/application/com.sap.test'. " Entity name
+
+SELECTION-SCREEN BEGIN OF SCREEN 1001.
+SELECTION-SCREEN COMMENT 1(83) text-001. "83 chars is max comment length using comment statement
+SELECTION-SCREEN   END OF SCREEN 1001.
+ 

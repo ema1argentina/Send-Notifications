@@ -70,7 +70,7 @@ FORM f_send_notification .
     EXPORTING
       io_http_client = go_http_client.
   TRY.
-      CONCATENATE '{"alert":"Notifcation from SAP S4HANA", "badge":1, "data": "{\"title\":\"Notif Title\",\"details\":{}}", "priority": "high" }' INTO lv_body.
+      CONCATENATE '{"alert":"Notifcation coming from SAP S4HANA", "badge":1, "data": "{\"title\":\"Notification Title\",\"details\":{}}", "priority": "high" }' INTO lv_body.
 
       " Set Payload or body ( JSON or XML)
       lo_request = lo_rest_client->if_rest_client~create_request_entity( ).

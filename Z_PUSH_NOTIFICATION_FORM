@@ -64,15 +64,13 @@ FORM f_send_notification .
   DATA: lo_rest_client TYPE REF TO cl_rest_http_client.
   DATA: lo_request     TYPE REF TO if_rest_entity.
   DATA: lv_body TYPE string.
-  DATA: workitem TYPE string.
 
 ****Create REST Client object
   CREATE OBJECT lo_rest_client
     EXPORTING
       io_http_client = go_http_client.
   TRY.
-      workitem = '000000003018'.
-      CONCATENATE '{"alert":"Notifcation from SAP S4HANA", "badge":1, "data": "{\"title\":\"Notif Title\",\"workitem\":\"' workitem '\",\"details\":{}}", "priority": "high" }' INTO lv_body.
+      CONCATENATE '{"alert":"Notifcation from SAP S4HANA", "badge":1, "data": "{\"title\":\"Notif Title\",\"details\":{}}", "priority": "high" }' INTO lv_body.
 
       " Set Payload or body ( JSON or XML)
       lo_request = lo_rest_client->if_rest_client~create_request_entity( ).
